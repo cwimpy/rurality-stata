@@ -1,0 +1,8 @@
+v 3
+d rurality — Rurality classification and scoring for U.S. counties
+d Cameron Wimpy, Arkansas State University
+d cwimpy@astate.edu
+d https://rurality.app
+d
+d Distribution-Date: 20260403
+p rurality
