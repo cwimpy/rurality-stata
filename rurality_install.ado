@@ -1,32 +1,35 @@
-*! rurality_install.ado — Download rurality data for use with rurality command
-*! Version 0.1.0 | Cameron Wimpy | 2026
+*! rurality_install.ado — Download rurality data files
+*! Version 0.1.1 | Cameron Wimpy | 2026
 
 program define rurality_install
     version 16.0
     syntax [, Replace]
 
-    * Determine install location
     local installdir : sysdir PLUS
-    local datafile "`installdir'r/rurality_data.dta"
+    local dstdir "`installdir'r"
+    capture mkdir "`dstdir'"
 
-    if "`replace'" == "" {
-        capture confirm file "`datafile'"
-        if !_rc {
-            di as text "Rurality data already installed at:"
-            di as text "  `datafile'"
-            di as text "Use {cmd:rurality_install, replace} to update."
-            exit 0
+    local files "rurality_data.dta ruca_data.dta"
+    local base "https://github.com/cwimpy/rurality-stata/raw/main/data"
+
+    foreach f of local files {
+        local dst "`dstdir'/`f'"
+        if "`replace'" == "" {
+            capture confirm file "`dst'"
+            if !_rc {
+                di as text "`f' already installed at `dst'"
+                continue
+            }
+        }
+        di as text "Downloading `f'..."
+        capture copy "`base'/`f'" "`dst'", replace
+        if _rc {
+            di as error "Failed to download `f' from `base'"
+            exit 601
         }
     }
 
-    * Download from GitHub release
-    di as text "Downloading rurality data..."
-    local url "https://github.com/cwimpy/rurality-stata/raw/main/data/rurality_data.dta"
-
-    capture mkdir "`installdir'r"
-    copy "`url'" "`datafile'", replace
-
-    di as text "Rurality data installed successfully."
-    di as text "  Location: `datafile'"
-    di as text "  Use {cmd:rurality, fips(varname)} to merge onto your data."
+    di as text "Rurality data files installed in `dstdir'"
+    di as text "Use {cmd:rurality, fips(varname)} for counties"
+    di as text "Use {cmd:rurality, zip(varname)} for ZIP/RUCA codes"
 end
